@@ -1,0 +1,316 @@
+# Solari coverage matrix.
+#
+# This file is the single source of truth for which (jurisdiction, topic)
+# combinations Solari will score, at what confidence tier, against which
+# statutory source, and using which mandatory-term vocabulary.
+#
+# tier meaning:
+#   P0 - full pipeline: heuristic gate + LLM-assisted review on ambiguous
+#        matches. Statute text is well-structured and independently
+#        verifiable. Shown with full-confidence styling.
+#   P1 - heuristic gate + LLM-assisted review still runs, but the source
+#        text is thinner / less centrally published. UI must show a
+#        "provisional" badge.
+#   P2 - heuristic-only. No LLM call (not worth spending a model call on
+#        ungrounded source text). UI must show a "limited coverage" badge.
+#
+# Any (jurisdiction, topic) pair not listed here is out_of_scope: it is
+# extracted and displayed, but never scored.
+#
+# mandatory_terms schema (each entry is an object, not a bare string):
+#   term:      the keyword/phrase checked against clause text
+#   provision: the specific statutory pinpoint citation for this term, or
+#              null if not independently pinpoint-verified
+#   verified:  true only when the pinpoint citation was checked against a
+#              primary or authoritative secondary source (see the research
+#              notes in each jurisdiction's comment below). false means
+#              "best available understanding, not independently checked -
+#              confirm before relying on it."
+#   note:      free-text context, e.g. explaining why a term has no
+#              statutory pinpoint (common-law doctrine, different statute
+#              than the one named in law_code, etc.)
+#
+# This exists precisely so the tool never repeats its original bug: a
+# single hardcoded citation ("16 CFR 314.4(e)" for every US clause, GDPR
+# for every EU one) stamped onto every match regardless of which term
+# actually mattered. Per-term citations mean a "missing obligation" can
+# point to the specific provision it's missing, or honestly say the
+# provision isn't pinned down yet - never a fabricated pinpoint.
+
+jurisdictions:
+  US:
+    data_privacy:
+      tier: P0
+      statute_id: ftc-safeguards-16-cfr-314
+      law_code: "16 CFR \u00a7 314.4 (FTC Safeguards Rule)"
+      source_url: "https://www.ftc.gov/business-guidance/privacy-security"
+      mandatory_terms:
+        # Verified against Cornell Law's text of 16 CFR 314.4 and the FTC's
+        # own guidance (business-guidance/resources/ftc-safeguards-rule).
+        - term: safeguards
+          provision: "16 CFR \u00a7 314.4(c)"
+          verified: true
+        - term: encryption
+          provision: "16 CFR \u00a7 314.4(c)(3)"
+          verified: true
+        - term: at rest
+          provision: "16 CFR \u00a7 314.4(c)(3)"
+          verified: true
+        - term: in transit
+          provision: "16 CFR \u00a7 314.4(c)(3)"
+          verified: true
+        - term: administrative
+          provision: null
+          verified: false
+          note: "General GLBA/Safeguards Rule term of art describing the program as a whole; not tied to one subsection."
+        - term: technical
+          provision: null
+          verified: false
+          note: "Same as 'administrative' above - descriptive term, not a single pinpoint."
+        - term: physical
+          provision: null
+          verified: false
+          note: "Same as 'administrative' above - descriptive term, not a single pinpoint."
+        - term: breach
+          provision: "16 CFR \u00a7 314.4(h)"
+          verified: false
+          note: "Incident response plan requirement; subsection letter matches multiple secondary sources but not independently confirmed against the CFR text directly."
+        - term: notification
+          provision: "16 CFR \u00a7 314.4(j)"
+          verified: true
+          note: "Distinct provision from \u00a7314.4(c) - added by the 2023 amendment, requires FTC notification within 30 days of a qualifying event."
+        - term: authorized
+          provision: "16 CFR \u00a7 314.4(c)(1)"
+          verified: false
+          note: "Access-control language; commonly cited at (c)(1) but not independently confirmed."
+        - term: multi-factor authentication
+          provision: "16 CFR \u00a7 314.4(c)(5)"
+          verified: true
+    employment:
+      tier: P0
+      statute_id: us-flsa
+      law_code: "29 U.S.C. \u00a7 201 et seq. (FLSA)"
+      source_url: "https://www.dol.gov/general/topic/employment"
+      mandatory_terms:
+        - term: overtime
+          provision: "29 U.S.C. \u00a7 207"
+          verified: true
+        - term: minimum wage
+          provision: "29 U.S.C. \u00a7 206"
+          verified: true
+        - term: exempt
+          provision: "29 U.S.C. \u00a7 213"
+          verified: true
+        - term: non-exempt
+          provision: "29 U.S.C. \u00a7 213"
+          verified: true
+        - term: classification
+          provision: "29 U.S.C. \u00a7 213"
+          verified: true
+        - term: at-will
+          provision: null
+          verified: false
+          note: "At-will employment is a common-law default doctrine, not codified in the FLSA. Kept as a vocabulary term because it's a common contract clause topic, but it has no FLSA pinpoint - varies by US state."
+        - term: termination notice
+          provision: null
+          verified: false
+          note: "The FLSA does not generally require termination notice. Mass layoffs may trigger the separate WARN Act (29 U.S.C. \u00a7 2101 et seq.), not the FLSA itself."
+
+  EU:
+    data_privacy:
+      tier: P0
+      statute_id: gdpr-art-28-32
+      law_code: "GDPR Regulation (EU) 2016/679 Art. 28/32/33"
+      source_url: "https://gdpr-info.eu/"
+      mandatory_terms:
+        - term: processor
+          provision: "GDPR Art. 28"
+          verified: true
+        - term: technical and organisational measures
+          provision: "GDPR Art. 32"
+          verified: true
+        - term: confidentiality
+          provision: "GDPR Art. 28(3)(b)"
+          verified: true
+        - term: 72 hours
+          provision: "GDPR Art. 33(1)"
+          verified: true
+        - term: breach notification
+          provision: "GDPR Art. 33"
+          verified: true
+        - term: data subject rights
+          provision: "GDPR Art. 12-23"
+          verified: true
+        - term: standard contractual clauses
+          provision: "GDPR Art. 46(2)(c)"
+          verified: false
+          note: "SCCs are made under Art. 46's general adequacy-mechanism framework; the exact paragraph is commonly cited but not independently re-checked here."
+    employment:
+      tier: P1
+      statute_id: eu-labour-directives
+      law_code: "EU Labour Directives (transposed nationally)"
+      source_url: "https://ec.europa.eu/social/main.jsp?catId=157"
+      note: >
+        Not a single enforceable statute; EU labour directives are
+        transposed differently by each member state. Treated as
+        provisional guidance, not a citable statutory benchmark.
+      mandatory_terms:
+        - term: working time
+          provision: "Directive 2003/88/EC"
+          verified: false
+        - term: transparent conditions
+          provision: "Directive (EU) 2019/1152, Art. 4"
+          verified: false
+        - term: notice period
+          provision: null
+          verified: false
+          note: "Notice-period minimums are set by member-state transposition, not the directive itself."
+        - term: probationary period
+          provision: "Directive (EU) 2019/1152, Art. 8"
+          verified: false
+
+  UK:
+    data_privacy:
+      tier: P0
+      statute_id: uk-gdpr-dpa-2018
+      law_code: "UK GDPR / Data Protection Act 2018"
+      source_url: "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/"
+      mandatory_terms:
+        - term: data controller
+          provision: "DPA 2018, s.3(6)"
+          verified: false
+        - term: data processor
+          provision: "DPA 2018, s.3(7)"
+          verified: false
+        - term: security of processing
+          provision: "UK GDPR Art. 32"
+          verified: true
+        - term: standard contractual clauses
+          provision: "UK GDPR Art. 46"
+          verified: false
+        - term: breach notification
+          provision: "UK GDPR Art. 33"
+          verified: true
+    employment:
+      tier: P0
+      statute_id: uk-employment-status
+      # Corrected: holiday entitlement is NOT under the Employment Rights
+      # Act 1996 - it's a separate statute (Working Time Regulations 1998).
+      # Confirmed via richardnelsonllp.co.uk and davidsonmorris.com (see
+      # research trail); the earlier single-statute law_code was wrong.
+      law_code: "Employment Rights Act 1996 (notice) / Working Time Regulations 1998 (holiday)"
+      source_url: "https://www.gov.uk/employment-status"
+      mandatory_terms:
+        - term: statutory notice period
+          provision: "ERA 1996, s.86"
+          verified: true
+        - term: holiday entitlement
+          provision: "Working Time Regulations 1998 (SI 1998/1833), reg. 13-13A"
+          verified: true
+          note: "Confirmed as a distinct statute from ERA 1996 - see law_code correction above."
+        - term: restrictive covenant
+          provision: null
+          verified: false
+          note: "Enforceability of restrictive covenants is common-law (reasonableness doctrine), not a single statutory provision."
+        - term: employment status
+          provision: "ERA 1996, s.230"
+          verified: false
+
+  ZA:
+    data_privacy:
+      tier: P1
+      statute_id: za-popia
+      law_code: "POPIA Act 4 of 2013"
+      source_url: "https://inforegulator.org.za/popia-regulations/"
+      mandatory_terms:
+        # Verified against schindlers.co.za's section-by-section summary of
+        # POPIA Chapter 3 and the Information Regulator's own materials.
+        - term: responsible party
+          provision: "POPIA s.1 (definitions)"
+          verified: true
+        - term: operator
+          provision: "POPIA s.1 (definitions), s.20-21"
+          verified: true
+        - term: information regulator
+          provision: "POPIA s.39"
+          verified: false
+          note: "Establishment of the Information Regulator; section number commonly cited but not independently re-checked here."
+        - term: lawful processing
+          provision: "POPIA s.9-12 (Chapter 3, Condition 2: Processing Limitation)"
+          verified: true
+        - term: consent
+          provision: "POPIA s.11"
+          verified: false
+    employment:
+      tier: P1
+      statute_id: za-bcea
+      law_code: "Basic Conditions of Employment Act 75 of 1997"
+      source_url: "https://www.labour.gov.za/basic-conditions-of-employment-act"
+      mandatory_terms:
+        - term: notice period
+          provision: "BCEA s.37"
+          verified: false
+        - term: working hours
+          provision: "BCEA s.9"
+          verified: false
+        - term: leave entitlement
+          provision: "BCEA s.20"
+          verified: false
+        - term: severance
+          provision: "BCEA s.41"
+          verified: false
+
+  LS:
+    data_privacy:
+      tier: P1
+      statute_id: ls-dpa-2012
+      law_code: "Lesotho Data Protection Act 2012 (Act 5)"
+      source_url: "https://lca.org.ls/regulations/data-protection/"
+      mandatory_terms:
+        - term: data controller
+          provision: null
+          verified: false
+          note: "Full section-by-section citation not independently verified for this Act; law_code identifies the statute, not a pinpoint."
+        - term: consent
+          provision: null
+          verified: false
+        - term: cross-border transfer
+          provision: null
+          verified: false
+        - term: safeguard
+          provision: null
+          verified: false
+    employment:
+      tier: P2
+      statute_id: ls-labour-code
+      law_code: "Lesotho Labour Code Order 1992 (secondary source)"
+      source_url: "https://www.ilo.org/dyn/natlex/docs/ELECTRONIC/31536/F1784964640/LSO31536.pdf"
+      note: >
+        Sourced only via an ILO PDF mirror, not the Lesotho gazette
+        directly. Heuristic-only; do not spend LLM calls on ungrounded
+        secondary-source text.
+      mandatory_terms:
+        - term: notice period
+          provision: null
+          verified: false
+        - term: termination
+          provision: null
+          verified: false
+        - term: severance
+          provision: null
+          verified: false
+    communications:
+      tier: P2
+      statute_id: ls-communications-act-2012
+      law_code: "Lesotho Communications Act 2012"
+      source_url: "https://lca.org.ls/communications-act-2012/"
+      mandatory_terms:
+        - term: licence
+          provision: null
+          verified: false
+        - term: data protection
+          provision: null
+          verified: false
+        - term: interception
+          provision: null
+          verified: false

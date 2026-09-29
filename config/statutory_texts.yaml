@@ -1,0 +1,99 @@
+# Dated snapshots of statutory/regulatory text used as scoring benchmarks.
+#
+# Each entry is keyed by statute_id (matching config/coverage.yaml) and
+# records when the text was last manually verified against the official
+# source. This is NOT a live scrape cache - live scraping of government
+# sites on every audit run is fragile and these texts do not change
+# often enough to justify it. Refresh manually / on a scheduled review,
+# and bump retrieved_at + text together.
+
+ftc-safeguards-16-cfr-314:
+  retrieved_at: "2026-06-01"
+  text: >
+    16 CFR Section 314.4(e) Standards for Safeguarding Customer
+    Information: Overseeing service providers. Contractually require
+    service providers to implement and maintain appropriate
+    administrative, technical, and physical safeguards; encryption of
+    customer information at rest and in transit; multi-factor
+    authentication; and written notification within 30 days of
+    discovery of unauthorized acquisition of unencrypted customer
+    information.
+
+us-flsa:
+  retrieved_at: "2026-06-01"
+  text: >
+    Fair Labor Standards Act: establishes minimum wage, overtime pay
+    at 1.5x regular rate for non-exempt employees, recordkeeping, and
+    worker classification (exempt vs non-exempt) standards. At-will
+    employment doctrine governs absent a contrary agreement.
+
+gdpr-art-28-32:
+  retrieved_at: "2026-06-01"
+  text: >
+    Regulation (EU) 2016/679 (GDPR) Article 28(3): processor contracts
+    must specify subject-matter, duration, nature and purpose of
+    processing, and require confidentiality and technical and
+    organisational measures. Article 32: appropriate technical and
+    organisational measures to ensure security of processing. Article
+    33: 72-hour breach notification to the supervisory authority.
+
+eu-labour-directives:
+  retrieved_at: "2026-06-01"
+  text: >
+    EU Directive 2019/1152 on Transparent and Predictable Working
+    Conditions: written information on working conditions, limits on
+    probationary period length, and minimum notice period standards.
+    Implementation varies by member state transposition.
+
+uk-gdpr-dpa-2018:
+  retrieved_at: "2026-06-01"
+  text: >
+    UK GDPR and Data Protection Act 2018: data controller and
+    processor obligations, security of processing requirements, and
+    standard contractual clauses for international transfers, as
+    enforced by the Information Commissioner's Office.
+
+uk-employment-status:
+  retrieved_at: "2026-06-01"
+  text: >
+    UK Employment Rights Act 1996 and gov.uk Employment Status
+    guidance: statutory minimum notice periods, statutory holiday
+    entitlement, and enforceability limits on restrictive covenants.
+
+za-popia:
+  retrieved_at: "2026-06-01"
+  text: >
+    Protection of Personal Information Act 4 of 2013 (POPIA):
+    responsible party and operator obligations, lawful processing
+    conditions, and Information Regulator oversight of data
+    processing agreements requiring documented consent where
+    applicable.
+
+za-bcea:
+  retrieved_at: "2026-06-01"
+  text: >
+    Basic Conditions of Employment Act 75 of 1997: minimum notice
+    periods, ordinary working hours limits, and statutory leave and
+    severance entitlements.
+
+ls-dpa-2012:
+  retrieved_at: "2026-06-01"
+  text: >
+    Lesotho Data Protection Act 2012 (Act 5): data controller
+    obligations, consent requirements for processing, and safeguard
+    requirements for cross-border transfer of personal data.
+
+ls-labour-code:
+  retrieved_at: "2026-06-01"
+  text: >
+    Lesotho Labour Code Order 1992 (secondary/mirrored source):
+    statutory notice periods and severance pay on termination.
+    Source is an ILO document mirror, not the Lesotho government
+    gazette - treat as indicative only.
+
+ls-communications-act-2012:
+  retrieved_at: "2026-06-01"
+  text: >
+    Lesotho Communications Act 2012: licensing obligations for
+    communications service providers and data protection duties in
+    respect of subscriber information.
