@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0b1326;
+  --color-surface-dim: #0b1326;
+  --color-surface-bright: #31394d;
+  --color-surface-container-lowest: #060e20;
+  --color-surface-container-low: #131b2e;
+  --color-surface-container: #171f33;
+  --color-surface-container-high: #222a3d;
+  --color-surface-container-highest: #2d3449;
+  --color-on-surface: #dae2fd;
+  --color-on-surface-variant: #d8c3ad;
+  --color-inverse-surface: #dae2fd;
+  --color-inverse-on-surface: #283044;
+  --color-outline: #a08e7a;
+  --color-outline-variant: #534434;
+  --color-surface-tint: #ffb95f;
+  --color-primary: #ffc174;
+  --color-on-primary: #472a00;
+  --color-primary-container: #f59e0b;
+  --color-on-primary-container: #613b00;
+  --color-secondary: #7bd0ff;
+  --color-on-secondary: #00354a;
+  --color-secondary-container: #00a6e0;
+  --color-on-secondary-container: #00374d;
+  --color-tertiary: #ffbcb7;
+  --color-on-tertiary: #68000a;
+  --color-tertiary-container: #ff938c;
+  --color-on-tertiary-container: #8d0012;
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-primary-fixed: #ffddb8;
+  --color-primary-fixed-dim: #ffb95f;
+  --color-on-primary-fixed: #2a1700;
+  --color-on-primary-fixed-variant: #653e00;
+  --color-secondary-fixed: #c4e7ff;
+  --color-secondary-fixed-dim: #7bd0ff;
+  --color-background: #0b1326;
+  --color-on-background: #dae2fd;
+  --color-surface-variant: #2d3449;
+
+  --font-headline-xl: "Sora", sans-serif;
+  --font-headline-lg: "Sora", sans-serif;
+  --font-headline-md: "Sora", sans-serif;
+  --font-body-lg: "Sora", sans-serif;
+  --font-body-md: "Sora", sans-serif;
+  --font-body-sm: "Sora", sans-serif;
+  --font-code-legal: "JetBrains Mono", monospace;
+  --font-label-md: "JetBrains Mono", monospace;
+  --font-label-sm: "JetBrains Mono", monospace;
+
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 0.75rem;
+  --spacing-space-lg: 1rem;
+  --spacing-space-xl: 1.5rem;
+  --spacing-margin: 1rem;
+  --spacing-gutter: 0.75rem;
+}
+
+:root {
+  --ink: #ffffff;
+  --sub: #a2a9b8;
+  --nav: #fbfdff;
+  --foot: #f4f8fd;
+  --hair: rgba(196, 214, 232, 0.72);
+  --chev: rgba(214, 232, 250, 0.90);
+  --navdim: #e8ecf0;
+  --feat: #e2ebf5;
+  --veil: 6, 10, 18;
+}
+
+@layer base {
+  * {
+    border-color: #222a3d;
+  }
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Sora', system-ui, -apple-system, sans-serif;
+    user-select: none;
+    background-color: #02060f;
+    color: #dae2fd;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  code, pre, .font-code-legal, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Neural Glass Component Styles */
+.neural-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(6, 12, 22, 0) 45%, rgba(6, 12, 22, .12) 78%, rgba(6, 12, 22, .28) 100%),
+    linear-gradient(90deg, rgba(255, 226, 178, .17) 0%, rgba(255, 236, 208, .07) 22%, rgba(176, 206, 238, .03) 55%, rgba(150, 196, 244, .09) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, .24) 0%, rgba(255, 255, 255, .17) 12%, rgba(255, 255, 255, .11) 26%, rgba(255, 255, 255, .07) 42%, rgba(255, 255, 255, .05) 60%, rgba(255, 255, 255, .04) 80%, rgba(255, 255, 255, .04) 100%);
+  -webkit-backdrop-filter: blur(20px) saturate(.45);
+  backdrop-filter: blur(20px) saturate(.45);
+  box-shadow: 0 -2px 20px rgba(255, 224, 176, .20),
+              0 0 25px rgba(168, 204, 252, .16),
+              inset 0 1px 0 0 rgba(255, 251, 242, .45);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.neural-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 246, .95) 0%, rgba(255, 252, 246, .20) 45%, rgba(255, 252, 246, 0) 78%),
+    linear-gradient(90deg, rgba(255, 228, 182, .95) 0%, rgba(250, 236, 210, .70) 12%, rgba(226, 230, 234, .03) 32%, rgba(214, 226, 240, .02) 62%, rgba(200, 228, 250, .70) 90%, rgba(186, 224, 247, .95) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+.neural-cta:hover {
+  box-shadow: 0 -2px 25px rgba(255, 224, 176, .35),
+              0 0 35px rgba(168, 204, 252, .28),
+              inset 0 1px 0 0 rgba(255, 251, 242, .6);
+  transform: translateY(-1px);
+}
+
+.neural-pill {
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+
+.neural-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(214, 232, 250, 0.9);
+}
+
+.neural-glass-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .08) 0%, rgba(255, 255, 255, .03) 100%),
+    linear-gradient(90deg, rgba(255, 226, 178, .04) 0%, rgba(150, 196, 244, .04) 100%),
+    linear-gradient(180deg, rgba(6, 12, 22, .75) 0%, rgba(6, 12, 22, .88) 100%);
+  -webkit-backdrop-filter: blur(24px) saturate(0.5);
+  backdrop-filter: blur(24px) saturate(0.5);
+  border: 1px solid rgba(196, 214, 232, 0.15);
+  box-shadow: 0 16px 40px rgba(2, 6, 15, 0.6);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060e20;
+}
+::-webkit-scrollbar-thumb {
+  background: #222a3d;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #31394d;
+}
+
+/* Material Symbols font helper */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}

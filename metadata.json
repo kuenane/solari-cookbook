@@ -1,0 +1,6 @@
+{
+  "name": "Solari Compliance Screening Auditor",
+  "description": "First-pass contract compliance screening against a defined jurisdiction/topic coverage matrix (see config/coverage.yaml), with an LLM-assisted review stage and a tamper-evident audit log. Not a compliance certification tool.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

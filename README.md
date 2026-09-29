@@ -1,139 +1,182 @@
-# Solari Cookbook
+# Solari
 
-Short, runnable examples for [Solari](https://getsolari.com) — cloud browsers,
-sandboxes, and desktops behind one API key.
+Solari is a **first-pass contract compliance screening tool**. For a
+defined set of jurisdictions and legal topics, it checks contract clauses
+against verified, dated statutory text using a deterministic keyword gate
+plus LLM-assisted review for ambiguous matches, and produces a
+tamper-evident audit log.
 
-Every example in this repo is a complete program you can run in under a minute.
-They are deliberately small: one idea each, no framework, no scaffolding to read
-past. Copy one into your project and change the parts you care about.
+## What this tool is not
 
-## Examples
+- **Not a compliance certification.** A "baseline met" result means the
+  clause contains language matching the mandatory terms this tool checks
+  for, under a named statute, as of a stated date. It is not a legal
+  opinion that the clause (or the contract) is compliant.
+- **Not case-law-aware.** It does not know about court decisions,
+  regulatory guidance, or statutory amendments after the date shown next
+  to each result.
+- **Not a substitute for legal advice.** Every non-clean result is routed
+  to a review queue for a human to disposition (`GET /api/review-queue`).
+- **Not a forensic/evidentiary certification.** The hash-chained ledger is
+  tamper-evidence for this tool's own local record (edits after the fact
+  are detectable) - it is a single-writer log, not distributed consensus,
+  and it does not by itself establish admissibility under any evidentiary
+  standard in any jurisdiction.
 
-### Cloud browser
+## What it actually covers
 
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [browser-quickstart-ts](examples/browser-quickstart-ts) | TypeScript | Launch a browser, open a page, read it |
-| [browser-quickstart-py](examples/browser-quickstart-py) | Python | Launch a browser, open a page, read it |
-| [browser-stealth-proxy-ts](examples/browser-stealth-proxy-ts) | TypeScript | Stealth mode + residential proxy egress |
-| [browser-profiles-ts](examples/browser-profiles-ts) | TypeScript | Log in once, reuse the session forever |
-| [browser-login-handoff-ts](examples/browser-login-handoff-ts) | TypeScript | Hand the live session to a human to sign in, then save it |
-| [browser-session-recording-py](examples/browser-session-recording-py) | Python | Record a session, download the replay |
-| [browser-page-assertions-py](examples/browser-page-assertions-py) | Python | Reject a wrong page even when navigation and screenshots succeed |
-| [browser-workers-cdp-ts](examples/browser-workers-cdp-ts) | TypeScript | Drive a browser from a Cloudflare Worker, over raw CDP |
-| [browser-playwright-runner-ts](examples/browser-playwright-runner-ts) | TypeScript | Run your existing Playwright suite on Solari, no local Chromium |
-| [eu-consent-evidence-ts](examples/eu-consent-evidence-ts) | TypeScript | Pre-consent tracker evidence via raw CDP |
+Coverage is defined entirely in [`config/coverage.yaml`](config/coverage.yaml)
+and served live at `GET /api/coverage`. Anything not listed there is
+extracted and displayed but **never scored** - it comes back `out_of_scope`
+rather than being force-matched against an unrelated statute.
 
-### Sandbox
+| Jurisdiction | data_privacy | employment | communications |
+|---|---|---|---|
+| US | P0 - FTC Safeguards Rule (16 CFR §314) | P0 - FLSA | - |
+| EU | P0 - GDPR Art. 28/32 | P1 - EU Labour Directives (not a single enforceable statute) | - |
+| UK | P0 - UK GDPR / DPA 2018 | P0 - Employment Rights Act 1996 | - |
+| ZA | P1 - POPIA | P1 - BCEA | - |
+| LS | P1 - Data Protection Act 2012 | P2 - Labour Code (secondary/ILO-mirrored source) | P2 - Communications Act 2012 |
 
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [sandbox-quickstart-ts](examples/sandbox-quickstart-ts) | TypeScript | Run a command, write and read files |
-| [sandbox-quickstart-rb](examples/sandbox-quickstart-rb) | Ruby | Same, with no SDK and no gems — stdlib only |
-| [sandbox-code-interpreter-py](examples/sandbox-code-interpreter-py) | Python | Stateful Python kernel for agent loops |
-| [sandbox-snapshot-fork-py](examples/sandbox-snapshot-fork-py) | Python | Seed a snapshot, fork clones, and verify each restored the exact file digest |
-| [sandbox-port-preview-ts](examples/sandbox-port-preview-ts) | TypeScript | Expose a server in the VM on a public URL |
-| [sandbox-scan-untrusted-code-ts](examples/sandbox-scan-untrusted-code-ts) | TypeScript | Run untrusted code and capture what it did (audit hook) |
+**Tier meaning:**
+- **P0** - full pipeline (keyword gate + LLM-assisted review on ambiguous
+  matches). Source text is well-structured and independently verifiable.
+- **P1** - same pipeline, but the UI shows a "provisional" badge because
+  the source text is thinner or less centrally published.
+- **P2** - heuristic-only, no LLM call (not worth spending a model call on
+  a secondary-source statute mirror). UI shows a "limited coverage" badge.
 
-### Multi-product
+SADC-level "harmonization" claims were deliberately dropped: the SADC
+Model Law is a template for member states to adopt, not enforceable
+statute on its own, and scoring against it implied an enforceability that
+doesn't exist.
 
-One key spans all three, so an example can use more than one at once.
+## Architecture
 
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [form-delivery-check-ts](examples/form-delivery-check-ts) | TypeScript | Submit a form in a browser, verify the lead landed in a sandbox |
-| [security-posture-review-ts](examples/security-posture-review-ts) | TypeScript | Browser and sandbox running concurrently on one key |
+There is **one backend**: `server.py` (FastAPI). It's the only thing that
+talks to LangGraph, the coverage matrix, and the NVIDIA NIM model.
 
-### Desktop
-
-| Example | Language | What it shows |
-| --- | --- | --- |
-| [desktop-computer-use-py](examples/desktop-computer-use-py) | Python | Screenshot, click, and type on a Linux GUI |
-
-## Applications
-
-Bigger programs built on Solari — a CLI or a UI, its own modules, solving a whole
-problem rather than showing one call. See [applications/](applications).
-
-## Running an example
-
-Each directory is self-contained.
-
-```bash
-git clone https://github.com/solari-sdk/solari-cookbook.git
-cd solari-cookbook/examples/browser-quickstart-ts
-
-npm install                          # or: pip install -r requirements.txt
-export SOLARI_API_KEY=slr_live_...   # grab one at console.getsolari.com
-npm start                            # or: python main.py
+```
+Browser (React/Vite)
+   │  fetch('/api/...')
+   ▼
+server.ts  (Express: static assets in prod / Vite middleware in dev)
+   │  reverse-proxies /api/* to SOLARI_API_TARGET
+   ▼
+server.py  (FastAPI - the only backend with business logic)
+   │
+   ├── coverage.py            → loads config/coverage.yaml + statutory_texts.yaml
+   ├── surfaces/desktop.py    → pypdf extraction, topic detection, ledger writer (single writer)
+   ├── surfaces/browser.py    → StatutorySourceProvider (verified snapshot; live fetch is opt-in)
+   └── pipeline.py            → LangGraph state machine: retrieve → match → reflect → score → log
 ```
 
-One `slr_live_` key works across browsers, sandboxes, and desktops, and every
-product bills to the same balance.
+`server.ts` has no scoring logic, no ledger logic, and no LLM calls of its
+own - previously it did (a second, independent implementation of all
+three, disconnected from the FastAPI/LangGraph side entirely, and it was
+the one the frontend actually talked to). That's fixed: one backend now.
 
-## Which product do I want?
+## Scoring pipeline
 
-- **Cloud browser** — you need a *web page*: scraping, testing, filling forms,
-  anything Playwright or Puppeteer would do locally. Adds stealth, managed
-  proxies, captcha solving, profiles, and session recording.
-- **Sandbox** — you need to *run code*: an LLM's Python, an untrusted build, a
-  data job. A headless microVM that boots from a snapshot in about a second.
-- **Desktop** — you need a *screen*: computer-use agents, GUI apps, anything
-  that has to be clicked. A sandbox plus X11 and a live VNC stream.
+1. **Retrieve** - pull the verified, dated statutory snapshot for the
+   clause's `(jurisdiction, topic)` cell.
+2. **Match (keyword gate)** - deterministic coverage ratio against that
+   cell's own mandatory-term vocabulary (not a single global list shared
+   by every topic).
+3. **Match (LLM-assisted)** - only runs when the gate score lands in the
+   ambiguous band (0.45-0.85) or obligations are missing, and only on
+   P0/P1 sources. The NIM model's response is parsed and actually used
+   (blended with, never allowed to fully override, the keyword floor) -
+   not discarded.
+4. **Reflect** - a second LLM call critiques the match when the match
+   itself was LLM-reviewed; otherwise a heuristic note explains what's
+   missing.
+5. **Score** - maps to `baseline_met` / `gaps_flagged` / `conflict_or_absent`
+   / `out_of_scope`, and auto-routes non-clean results into the review
+   queue (`ReviewStatus.FLAGGED_FOR_COUNSEL`).
+6. **Log** - commits a SHA-256 hash-chained block via the single ledger
+   writer in `surfaces/desktop.py`.
 
-## Gotchas the examples encode
+## Running it
 
-Things that cost you an afternoon if you meet them cold:
+```bash
+# Backend
+pip install -r requirements.txt
+cp .env.example .env   # add NVIDIA_API_KEY for LLM-assisted review
+python server.py       # serves FastAPI on :8000
 
-- **TypeScript: `browser.close()` is enough to exit (as of `@solarisdk/browser`
-  0.1.3).** The client keeps a loopback proxy open for connection retries; before
-  0.1.3 that listener held Node's event loop open, so you had to
-  `await solari.close()` or the script printed its output and then hung forever.
-  0.1.3 unrefs the listener — `browser.close()` alone now exits. Calling
-  `solari.close()` is still fine and releases the client's pool immediately.
-- **A profile does not seed the browser on its own.** `launch({ profileId })` puts the
-  stored state on `session.storageState` and stops there. Pass it to
-  `newContext({ storageState })` or every run starts anonymous while looking logged in.
-  `addCookies()` is not a substitute: it restores the cookies and drops localStorage.
-  Building your own context also drops the pool's timezone pin, so a profile +
-  proxy flow must pass `timezoneId: browser.proxy?.timezoneId` through as well.
-- **The TypeScript SDK cannot run on an edge runtime.** It bundles a
-  Playwright fork that wants Node and raw TCP sockets, so Workers, Deno
-  Deploy and friends are out. Skip it: every session exposes a CDP endpoint,
-  and any runtime that can hold an outbound WebSocket can drive the browser
-  directly. See [browser-workers-cdp-ts](examples/browser-workers-cdp-ts).
-- **`contexts()` is empty unless you asked for a proxy.** The pool only creates
-  a context up front when a session requests one, so `browser.contexts()[0]` is
-  `undefined` on a plain `launch()` and a non-null assertion on it will throw at
-  `newPage()`. Fall back to `newContext()`. A context you make yourself also
-  skips the pool's timezone pin, which matters only when a proxy is attached.
-- **The Playwright wire protocol is version-gated; CDP is not.** `connectOptions`
-  and `chromium.connect()` speak the wire protocol, and the browser server
-  rejects clients whose version differs from the one it runs with a 428, matched
-  on Playwright's own User-Agent. Our pin moves. Connecting over the session's
-  CDP endpoint has no version gate, so a suite that connects that way survives an
-  upgrade on either side. See
-  [browser-playwright-runner-ts](examples/browser-playwright-runner-ts).
-- **Recording is per session, not per account.** Pass `recording: true` when you
-  create the session; without it the replay endpoint 404s forever. The upload is
-  async after release, so poll for ~30s before giving up.
-- **Sandbox commands are not shell-interpreted.** `run("ls -la")` looks for a
-  binary named `ls -la`. Put argv in `args`, or run `sh -c` explicitly.
-- **`kill()`, not `close()`, ends a VM.** `close()` drops your local control
-  channel; the VM keeps running until its idle timeout.
-- **`timeoutMs` is a rolling idle window**, not a hard deadline — it resets on
-  every use.
+# Frontend (separate terminal)
+npm install
+npm run dev             # serves the app on :3000, proxying /api to :8000
+```
 
-## Links
+Without `NVIDIA_API_KEY` set, scoring falls back to the deterministic
+keyword gate only on every clause - `match_result.llm_reviewed` will be
+`false`. Do not treat gate-only results as equivalent to LLM-reviewed
+ones; the UI does not currently distinguish them beyond that field, so
+check it if you need to know which mode produced a given result.
 
-- Docs — [docs.getsolari.com](https://docs.getsolari.com)
-- Console — [console.getsolari.com](https://console.getsolari.com)
-- Changelog — [changelog.getsolari.com](https://changelog.getsolari.com)
-- Questions — [hello@getsolari.com](mailto:hello@getsolari.com)
+### Tests
 
-## Contributing
+```bash
+SOLARI_TEST_FIXTURES=1 pytest tests/ -v   # deterministic, no live API key needed
+npx tsc --noEmit                          # frontend type-check
+```
 
-New examples are welcome. Keep them small, make them run end-to-end against the
-real API, and put anything surprising in a comment right where it bites.
+`SOLARI_TEST_FIXTURES=1` replays recorded JSON responses from
+`tests/fixtures/` instead of calling NVIDIA NIM, so the LLM-blending logic
+has a real regression test without needing network access or a key.
 
-MIT licensed.
+## Known limitations (tracked, not hidden)
+
+- **PDF extraction has no OCR.** Scanned/image-only PDFs yield no
+  extractable text via `pypdf` and fall back to canonical demo clauses
+  with a logged warning, rather than the old behavior of decoding binary
+  bytes as UTF-8 and treating the garbage as clause text.
+- **Live statutory-source fetching is opt-in** (`SOLARI_LIVE_FETCH=1`) and
+  best-effort only. The verified, dated snapshot in
+  `config/statutory_texts.yaml` is the source of truth; it needs a manual
+  review cadence to stay current, not a scraper.
+- **Per-term statutory citations are a mix of verified and unverified.**
+  Each entry in `config/coverage.yaml`'s `mandatory_terms` carries a
+  `verified: true/false` flag - `true` only where the pinpoint citation
+  was checked against a primary or authoritative secondary source (see
+  the research notes in that file's comments; several US/UK/ZA citations
+  were verified this way, including a correction: UK holiday entitlement
+  is under the Working Time Regulations 1998, not the Employment Rights
+  Act 1996 as an earlier version of this file claimed). `verified: false`
+  citations are honest best-effort, not fabricated precision - confirm
+  before relying on them.
+- **Counsel overrides are cryptographically signed, not identity-verified.**
+  Each override is signed client-side with an ECDSA P-256 key (generated
+  in-browser via Web Crypto, see `src/utils/counselSigning.ts`), and the
+  server independently re-verifies the signature against the payload
+  (`counsel_signing.py`) - both at write time and again on every
+  `/api/ledger/verify` call, so editing the ledger file and recomputing
+  its hash still fails signature re-verification. What this proves:
+  whoever submitted the override held the private key, and the payload
+  hasn't been altered since signing. What it does NOT prove: that the key
+  belongs to the named person - key-to-identity binding is the same
+  self-asserted trust model as an unverified PGP/SSH key, not a certified
+  digital identity, and that limitation is surfaced in the UI rather than
+  implied away.
+- **The frontend verdict-vocabulary rename is complete at the type/data
+  layer**, but some legacy display copy in less-central views may still
+  need a pass - if you find "VERIFIED"/"REJECTED" language anywhere, it's
+  a bug, not an intentional label; please flag it.
+- **Employment/communications vocabularies are a first pass.** POPIA,
+  BCEA, and the Lesotho statutes have `verified: false` citations pending
+  further research; contributions to firm these up should come with a
+  cited primary source per term.
+
+## Contributing a jurisdiction or topic
+
+1. Add a cell to `config/coverage.yaml` with a `tier`, `statute_id`,
+   `law_code`, `source_url`, and a `mandatory_terms` list specific to that
+   (jurisdiction, topic) pair.
+2. Add the corresponding dated snapshot to `config/statutory_texts.yaml`,
+   citing where the text came from.
+3. Run `pytest tests/test_scoring.py` - it asserts every cell has a valid
+   tier and a non-empty vocabulary.
+4. If the source is thin or secondary (a mirror, not the primary gazette),
+   mark it P1 or P2 rather than P0 - see the tier definitions above.
