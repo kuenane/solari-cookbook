@@ -4,7 +4,7 @@ Guidance for AI agents and engineers working in this repository.
 
 ## What this project is
 
-Solari is a **first-pass contract compliance screening tool**. For a defined set of
+A **first-pass contract compliance screening tool**. For a defined set of
 jurisdictions and legal topics, it checks contract clauses against verified, dated
 statutory text using a deterministic keyword gate plus LLM-assisted review for
 ambiguous matches, and produces a tamper-evident (SHA-256 hash-chained) audit log.
